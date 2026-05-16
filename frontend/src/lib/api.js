@@ -56,6 +56,10 @@ export const transactions = {
     api.post(`/transactions/${id}/reject`, { reason }).then((r) => r.data),
 };
 
+export const audit = {
+  list: (params = {}) => api.get("/audit", { params }).then((r) => r.data),
+};
+
 export const alerts = {
   list: (unreadOnly = false) =>
     api.get("/alerts", { params: { unread_only: unreadOnly } }).then((r) => r.data),

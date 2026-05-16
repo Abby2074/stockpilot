@@ -5,6 +5,7 @@ import Products from "./pages/Products";
 import Transactions from "./pages/Transactions";
 import AICount from "./pages/AICount";
 import Users from "./pages/Users";
+import AuditLog from "./pages/AuditLog";
 import AppShell from "./components/AppShell";
 import { getUser } from "./lib/api";
 
@@ -73,6 +74,18 @@ function App() {
           element={
             <PrivateRoute roles={["OWNER"]} title="Users" subtitle="User accounts & roles">
               <Users />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/audit"
+          element={
+            <PrivateRoute
+              roles={["OWNER"]}
+              title="Audit log"
+              subtitle="Immutable record of every state-changing action"
+            >
+              <AuditLog />
             </PrivateRoute>
           }
         />

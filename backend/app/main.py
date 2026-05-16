@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine, Base
 from app.models import models  # noqa: F401 — needed to register models with metadata
-from app.routes import alerts, auth, products, transactions, users
+from app.routes import alerts, audit, auth, products, transactions, users
 
 # Create tables on startup. Production deployments should use Alembic migrations.
 Base.metadata.create_all(bind=engine)
@@ -27,6 +27,7 @@ app.include_router(products.router)
 app.include_router(transactions.router)
 app.include_router(users.router)
 app.include_router(alerts.router)
+app.include_router(audit.router)
 
 
 @app.get("/")
