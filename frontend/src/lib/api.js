@@ -71,17 +71,18 @@ export const alerts = {
 
 // Standalone AI microservice — separate base URL.
 // Returns { detections: [{ product, count, confidence }], model, mock }.
+// Timeout is 120s to tolerate Render free-tier cold-start (~30–60s wake).
 export const aiDetect = async (files) => {
   const form = new FormData();
   form.append("file", files[0]);
   const res = await axios.post(`${AI_BASE}/detect`, form, {
-    timeout: 60000,
+    timeout: 120000,
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;
 };
 
-export const aiStatus = () => axios.get(`${AI_BASE}/`).then((r) => r.data);
+export const aiStatus = () => axios.get(`${AI_BASE}/`, { timeout: 30000 }).then((r) => r.data);
 
 export const getUser = () => {
   try {

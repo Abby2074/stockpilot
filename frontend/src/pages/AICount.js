@@ -50,10 +50,18 @@ export default function AICount() {
       setResults(out.detections || []);
       setModel({ configured: !out.mock, mock: !!out.mock });
     } catch (e) {
-      setError(
-        "The AI service did not respond. Make sure it is running on port 8001 " +
-          "(see ai-service/README.md)."
-      );
+      const status = e?.response?.status;
+      const detail = e?.response?.data?.detail;
+      if (status === 502) {
+        setError(`Detection backend was unreachable from the AI service: ${detail || "no response"}.`);
+      } else if (e?.code === "ECONNABORTED") {
+        setError("The AI service is waking up (free-tier hosting sleeps after 15 min). Please retry in ~30 seconds.");
+      } else {
+        setError(
+          detail ||
+            "The AI service did not respond. If this is your first request in a while, it may be waking up from sleep — retry in 30 seconds."
+        );
+      }
     } finally {
       setProcessing(false);
     }
