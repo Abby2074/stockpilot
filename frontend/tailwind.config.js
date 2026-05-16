@@ -4,8 +4,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Primary brand — teal/emerald (the green that's working well).
-        // Used for: primary buttons, active nav, success states.
+        // Primary brand — teal/emerald green (StockPilot identity).
         brand: {
           50:  "#f0fdfa",
           100: "#ccfbf1",
@@ -13,14 +12,13 @@ module.exports = {
           300: "#5eead4",
           400: "#2dd4bf",
           500: "#14b8a6",
-          600: "#0d9488",  // primary buttons, active nav (StockPilot green)
-          700: "#0f766e",  // primary hover
+          600: "#0d9488",
+          700: "#0f766e",
           800: "#115e59",
           900: "#134e4a",
+          950: "#0a3b38",
         },
-        // Accent — medium-dark blue. Used sparingly (~10–15% of UI):
-        // links, info chips, secondary buttons, focus rings, sidebar accent rail,
-        // chart strokes, AI / analytics highlights.
+        // Accent — medium-dark blue, used in chrome highlights and info pills.
         accent: {
           50:  "#eff6ff",
           100: "#dbeafe",
@@ -28,10 +26,25 @@ module.exports = {
           300: "#93c5fd",
           400: "#60a5fa",
           500: "#3b82f6",
-          600: "#2563eb",  // primary accent — medium-dark blue
-          700: "#1d4ed8",  // accent hover
+          600: "#2563eb",
+          700: "#1d4ed8",
           800: "#1e40af",
           900: "#1e3a8a",
+          950: "#172554",
+        },
+        // Ink — the dark chrome (sidebar, topbar, footer). Slightly blue-tinted dark.
+        ink: {
+          50:  "#f1f5f9",
+          100: "#e2e8f0",
+          200: "#cbd5e1",
+          300: "#94a3b8",
+          400: "#64748b",
+          500: "#475569",
+          600: "#334155",
+          700: "#1e293b",
+          800: "#0f172a",     // sidebar body
+          900: "#0a0f1d",     // sidebar deep
+          950: "#05080f",     // outline / divider
         },
       },
       fontFamily: {
@@ -41,6 +54,7 @@ module.exports = {
         card: "0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px 0 rgba(0,0,0,0.04)",
         lift: "0 10px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.04)",
         ring: "0 0 0 1px rgba(15,23,42,0.06), 0 4px 12px -4px rgba(15,23,42,0.08)",
+        "inset-ring": "inset 0 0 0 1px rgba(255,255,255,0.06)",
       },
     },
   },

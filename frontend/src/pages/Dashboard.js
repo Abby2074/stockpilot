@@ -61,10 +61,10 @@ const COUNTS_BY_ROLE = {
 };
 
 const TONE_CLASS = {
-  brand:   "bg-brand-50 text-brand-700",
-  accent:  "bg-accent-50 text-accent-700",
-  amber:   "bg-amber-50 text-amber-700",
-  emerald: "bg-emerald-50 text-emerald-700",
+  brand:   "bg-brand-100 text-brand-700 ring-1 ring-brand-200",
+  accent:  "bg-accent-100 text-accent-700 ring-1 ring-accent-200",
+  amber:   "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
+  emerald: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
 };
 
 const SERIES = [
@@ -89,11 +89,11 @@ const RECENT = [
 ];
 
 const TYPE_BADGE = {
-  IN:         "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-  OUT:        "bg-red-50 text-red-700 ring-1 ring-red-200",
-  TRANSFER:   "bg-accent-50 text-accent-700 ring-1 ring-accent-200",
-  ADJUSTMENT: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-  COUNT:      "bg-brand-50 text-brand-700 ring-1 ring-brand-200",
+  IN:         "bg-emerald-950 text-emerald-300 ring-emerald-800",
+  OUT:        "bg-red-950 text-red-300 ring-red-800",
+  TRANSFER:   "bg-accent-950 text-accent-300 ring-accent-800",
+  ADJUSTMENT: "bg-amber-950 text-amber-300 ring-amber-800",
+  COUNT:      "bg-brand-950 text-brand-300 ring-brand-800",
 };
 
 function statusBadge(s) {
@@ -185,27 +185,36 @@ export default function Dashboard() {
         {isSales && <SalesQuickPanel />}
       </section>
 
-      {/* Capabilities feature strip — the 21st.dev "features" pattern */}
+      {/* Capabilities feature strip — bento-style with status pill + hash chips */}
       <section className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <FeatureTile
           tone="brand"
           Icon={ShieldCheck}
           title="Role-based access"
+          version="v1.0"
+          status="Active"
           body="Four roles, separation of duties enforced on every endpoint, full audit trail."
+          tags={["#Governance", "#RBAC", "#Audit"]}
           delay={1}
         />
         <FeatureTile
           tone="accent"
           Icon={Bot}
           title="AI-assisted counting"
+          version="YOLOv8"
+          status="Live"
           body="Capture stock with your phone or CCTV; the AI service returns counts with confidence scores."
+          tags={["#ComputerVision", "#Roboflow", "#Realtime"]}
           delay={2}
         />
         <FeatureTile
           tone="accent"
           Icon={Bell}
           title="Role-targeted alerts"
+          version="v1.0"
+          status="Live"
           body="Approvals to managers, AI completions to storekeepers, discrepancies to owners."
+          tags={["#Notifications", "#SMS", "#InApp"]}
           delay={3}
         />
       </section>
@@ -249,16 +258,27 @@ export default function Dashboard() {
   );
 }
 
-function FeatureTile({ tone, Icon, title, body, delay = 0 }) {
+function FeatureTile({ tone, Icon, title, version, status, body, tags = [], delay = 0 }) {
   const cardClass = tone === "accent" ? "card-accent" : "card-brand";
   const iconClass = tone === "accent" ? "stat-tile-icon-accent" : "stat-tile-icon";
   return (
     <div className={`group ${cardClass} card-hover p-5 anim-fade-up anim-delay-${delay}`}>
-      <div className={iconClass}>
-        <Icon className="h-5 w-5" />
+      <div className="flex items-start justify-between">
+        <div className={iconClass}>
+          <Icon className="h-5 w-5" />
+        </div>
+        {status && <span className="bento-chip-status">{status}</span>}
       </div>
-      <div className="mt-3 text-sm font-semibold text-slate-900">{title}</div>
+      <div className="mt-3 flex items-baseline gap-2">
+        <span className="text-sm font-semibold text-slate-900">{title}</span>
+        {version && <span className="text-[10px] text-slate-500">{version}</span>}
+      </div>
       <div className="mt-1 text-xs text-slate-600 leading-relaxed">{body}</div>
+      {tags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {tags.map((t) => <span key={t} className="bento-chip">{t}</span>)}
+        </div>
+      )}
     </div>
   );
 }

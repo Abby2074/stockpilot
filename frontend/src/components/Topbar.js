@@ -94,9 +94,9 @@ export default function Topbar({ title, subtitle }) {
   };
 
   return (
-    <header className="topbar-surface sticky top-0 z-20 flex h-16 items-center justify-between border-b border-accent-100 px-8">
+    <header className="topbar-surface sticky top-0 z-20 flex h-16 items-center justify-between border-b border-accent-200 px-8">
       <div className="min-w-0">
-        <h1 className="truncate text-lg font-semibold text-slate-900 tracking-tight">
+        <h1 className="truncate text-lg font-semibold text-accent-900 tracking-tight">
           {title}
         </h1>
         {subtitle && <p className="truncate text-xs text-accent-700/80">{subtitle}</p>}
@@ -107,7 +107,7 @@ export default function Topbar({ title, subtitle }) {
           <button
             onClick={openPanel}
             aria-label="Alerts"
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-accent-200 bg-white/80 text-accent-700 transition-all hover:bg-accent-50 hover:border-accent-300 hover:text-accent-800 active:scale-95"
+            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-accent-300 bg-white/85 text-accent-700 transition-all hover:bg-white hover:border-accent-400 hover:text-accent-800 active:scale-95 shadow-sm"
           >
             <Bell className="h-4 w-4" />
             {unread > 0 && (
@@ -182,11 +182,11 @@ export default function Topbar({ title, subtitle }) {
           )}
         </div>
 
-        <div className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 sm:flex">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-[10px] font-semibold text-white">
+        <div className="hidden items-center gap-2 rounded-lg border border-accent-200 bg-white/80 px-2.5 py-1.5 shadow-sm sm:flex">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-accent-500 text-[10px] font-semibold text-white">
             {user?.name?.[0]?.toUpperCase() || "?"}
           </div>
-          <span className="text-xs font-medium text-slate-700">{user?.name || "—"}</span>
+          <span className="text-xs font-medium text-accent-900">{user?.name || "—"}</span>
         </div>
       </div>
     </header>

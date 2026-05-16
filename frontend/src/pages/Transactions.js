@@ -21,11 +21,11 @@ const SEED = [
 ];
 
 const TYPE_BADGE = {
-  IN:         "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-  OUT:        "bg-red-50 text-red-700 ring-1 ring-red-200",
-  TRANSFER:   "bg-accent-50 text-accent-700 ring-1 ring-accent-200",
-  ADJUSTMENT: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-  COUNT:      "bg-brand-50 text-brand-700 ring-1 ring-brand-200",
+  IN:         "bg-emerald-950 text-emerald-300 ring-emerald-800",
+  OUT:        "bg-red-950 text-red-300 ring-red-800",
+  TRANSFER:   "bg-accent-950 text-accent-300 ring-accent-800",
+  ADJUSTMENT: "bg-amber-950 text-amber-300 ring-amber-800",
+  COUNT:      "bg-brand-950 text-brand-300 ring-brand-800",
 };
 
 const STATUS_BADGE = {

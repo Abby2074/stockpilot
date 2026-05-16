@@ -54,15 +54,15 @@ export default function Sidebar() {
   const role = user?.role || "SALES";
 
   return (
-    <aside className="sidebar-surface fixed left-0 top-0 z-30 flex h-screen w-64 flex-col border-r border-accent-100">
+    <aside className="sidebar-surface fixed left-0 top-0 z-30 flex h-screen w-64 flex-col border-r border-brand-950">
       {/* Brand */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-accent-100 bg-gradient-to-r from-brand-50/40 to-accent-50/40">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-accent-600 text-white shadow-md ring-1 ring-accent-700/20">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-brand-800/50">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 text-white shadow-lg ring-1 ring-brand-300/30">
           <Boxes className="h-5 w-5" />
         </div>
         <div>
-          <div className="text-base font-semibold text-slate-900 tracking-tight">StockPilot</div>
-          <div className="text-[11px] text-accent-700/80">Inventory · Governance · AI</div>
+          <div className="text-base font-semibold text-white tracking-tight">StockPilot</div>
+          <div className="text-[11px] text-brand-300/80">Inventory · Governance · AI</div>
         </div>
       </div>
 
@@ -96,26 +96,26 @@ export default function Sidebar() {
       </nav>
 
       {/* User card */}
-      <div className="border-t border-accent-100 p-3">
-        <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-accent-50 to-white px-3 py-2.5 ring-1 ring-accent-100">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-accent-600 text-sm font-semibold text-white shadow-sm">
+      <div className="border-t border-brand-800/50 p-3">
+        <div className="flex items-center gap-3 rounded-xl bg-brand-950/40 px-3 py-2.5 ring-1 ring-brand-800/40">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-accent-400 text-sm font-semibold text-white shadow-sm">
             {user?.name?.[0]?.toUpperCase() || "?"}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-medium text-slate-900">
+            <div className="truncate text-sm font-medium text-white">
               {user?.name || "—"}
             </div>
-            <div className="flex items-center gap-1 truncate text-[11px] text-accent-700">
-              <ShieldCheck className="h-3 w-3 text-accent-600" />
+            <div className="flex items-center gap-1 truncate text-[11px] text-brand-300">
+              <ShieldCheck className="h-3 w-3 text-accent-400" />
               {ROLE_LABEL[role] || role}
             </div>
           </div>
         </div>
         <button
           onClick={logout}
-          className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600"
+          className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-brand-300 transition-colors hover:bg-red-900/40 hover:text-red-200"
         >
-          <LogOut className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+          <LogOut className="h-4 w-4" />
           <span>Logout</span>
         </button>
       </div>

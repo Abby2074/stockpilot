@@ -5,10 +5,10 @@ import { users as usersApi, getUser } from "../lib/api";
 const ROLES = ["OWNER", "MANAGER", "STOREKEEPER", "SALES"];
 
 const ROLE_BADGE = {
-  OWNER:       "bg-brand-50   text-brand-700   ring-1 ring-brand-200",
-  MANAGER:     "bg-accent-50  text-accent-700  ring-1 ring-accent-200",
-  STOREKEEPER: "bg-amber-50   text-amber-700   ring-1 ring-amber-200",
-  SALES:       "bg-slate-100  text-slate-700   ring-1 ring-slate-200",
+  OWNER:       "bg-brand-950   text-brand-300   ring-brand-800",
+  MANAGER:     "bg-accent-950  text-accent-300  ring-accent-800",
+  STOREKEEPER: "bg-amber-950   text-amber-300   ring-amber-800",
+  SALES:       "bg-slate-900   text-slate-300   ring-slate-700",
 };
 
 export default function Users() {
