@@ -94,12 +94,12 @@ export default function Topbar({ title, subtitle }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/85 px-8 backdrop-blur">
+    <header className="topbar-surface sticky top-0 z-20 flex h-16 items-center justify-between border-b border-accent-100 px-8">
       <div className="min-w-0">
         <h1 className="truncate text-lg font-semibold text-slate-900 tracking-tight">
           {title}
         </h1>
-        {subtitle && <p className="truncate text-xs text-slate-500">{subtitle}</p>}
+        {subtitle && <p className="truncate text-xs text-accent-700/80">{subtitle}</p>}
       </div>
 
       <div className="flex items-center gap-3">
@@ -107,18 +107,18 @@ export default function Topbar({ title, subtitle }) {
           <button
             onClick={openPanel}
             aria-label="Alerts"
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-accent-200 bg-white/80 text-accent-700 transition-all hover:bg-accent-50 hover:border-accent-300 hover:text-accent-800 active:scale-95"
           >
             <Bell className="h-4 w-4" />
             {unread > 0 && (
-              <span className="absolute -top-1 -right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-600 px-1 text-[10px] font-semibold text-white ring-2 ring-white">
+              <span className="anim-pulse-ring absolute -top-1 -right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-600 px-1 text-[10px] font-semibold text-white ring-2 ring-white">
                 {unread > 9 ? "9+" : unread}
               </span>
             )}
           </button>
 
           {open && (
-            <div className="absolute right-0 mt-2 w-96 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lift">
+            <div className="anim-slide-down absolute right-0 mt-2 w-96 overflow-hidden rounded-xl border border-accent-100 bg-white shadow-lift">
               <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                 <div>
                   <div className="text-sm font-semibold text-slate-900">Alerts</div>

@@ -54,15 +54,15 @@ export default function Sidebar() {
   const role = user?.role || "SALES";
 
   return (
-    <aside className="fixed left-0 top-0 z-30 flex h-screen w-64 flex-col border-r border-slate-200 bg-white">
+    <aside className="sidebar-surface fixed left-0 top-0 z-30 flex h-screen w-64 flex-col border-r border-accent-100">
       {/* Brand */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-100">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm ring-1 ring-brand-700/30">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-accent-100 bg-gradient-to-r from-brand-50/40 to-accent-50/40">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-accent-600 text-white shadow-md ring-1 ring-accent-700/20">
           <Boxes className="h-5 w-5" />
         </div>
         <div>
           <div className="text-base font-semibold text-slate-900 tracking-tight">StockPilot</div>
-          <div className="text-[11px] text-slate-500">Inventory · Governance · AI</div>
+          <div className="text-[11px] text-accent-700/80">Inventory · Governance · AI</div>
         </div>
       </div>
 
@@ -96,16 +96,16 @@ export default function Sidebar() {
       </nav>
 
       {/* User card */}
-      <div className="border-t border-slate-100 p-3">
-        <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5 ring-1 ring-slate-100">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-brand-700 text-sm font-semibold text-white">
+      <div className="border-t border-accent-100 p-3">
+        <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-accent-50 to-white px-3 py-2.5 ring-1 ring-accent-100">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-accent-600 text-sm font-semibold text-white shadow-sm">
             {user?.name?.[0]?.toUpperCase() || "?"}
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium text-slate-900">
               {user?.name || "—"}
             </div>
-            <div className="flex items-center gap-1 truncate text-[11px] text-slate-500">
+            <div className="flex items-center gap-1 truncate text-[11px] text-accent-700">
               <ShieldCheck className="h-3 w-3 text-accent-600" />
               {ROLE_LABEL[role] || role}
             </div>
@@ -113,9 +113,9 @@ export default function Sidebar() {
         </div>
         <button
           onClick={logout}
-          className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600"
+          className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
           <span>Logout</span>
         </button>
       </div>

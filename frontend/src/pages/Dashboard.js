@@ -128,9 +128,12 @@ export default function Dashboard() {
 
       {/* Stat tiles */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(({ label, key, Icon, tone }) => (
-          <div key={key} className="stat-tile card-hover">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${TONE_CLASS[tone]}`}>
+        {stats.map(({ label, key, Icon, tone }, i) => (
+          <div
+            key={key}
+            className={`group stat-tile card-hover anim-fade-up anim-delay-${i + 1}`}
+          >
+            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${TONE_CLASS[tone]} transition-transform duration-200 group-hover:scale-110`}>
               <Icon className="h-5 w-5" />
             </div>
             <div className="min-w-0">
@@ -189,18 +192,21 @@ export default function Dashboard() {
           Icon={ShieldCheck}
           title="Role-based access"
           body="Four roles, separation of duties enforced on every endpoint, full audit trail."
+          delay={1}
         />
         <FeatureTile
           tone="accent"
           Icon={Bot}
           title="AI-assisted counting"
           body="Capture stock with your phone or CCTV; the AI service returns counts with confidence scores."
+          delay={2}
         />
         <FeatureTile
-          tone="brand"
+          tone="accent"
           Icon={Bell}
           title="Role-targeted alerts"
           body="Approvals to managers, AI completions to storekeepers, discrepancies to owners."
+          delay={3}
         />
       </section>
 
@@ -243,15 +249,16 @@ export default function Dashboard() {
   );
 }
 
-function FeatureTile({ tone, Icon, title, body }) {
+function FeatureTile({ tone, Icon, title, body, delay = 0 }) {
+  const cardClass = tone === "accent" ? "card-accent" : "card-brand";
   const iconClass = tone === "accent" ? "stat-tile-icon-accent" : "stat-tile-icon";
   return (
-    <div className="card card-hover p-5">
+    <div className={`group ${cardClass} card-hover p-5 anim-fade-up anim-delay-${delay}`}>
       <div className={iconClass}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="mt-3 text-sm font-semibold text-slate-900">{title}</div>
-      <div className="mt-1 text-xs text-slate-500 leading-relaxed">{body}</div>
+      <div className="mt-1 text-xs text-slate-600 leading-relaxed">{body}</div>
     </div>
   );
 }
