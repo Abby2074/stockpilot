@@ -68,7 +68,24 @@ export default function Products() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({ sku: "", name: "", category: "", unit: "" });
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const openCreate = () => {
+    setEditingId(null);
+    setDraft({ sku: "", name: "", category: "", unit: "" });
+    setFormError("");
+    setOpen(true);
+  };
+
+  const openEdit = (p) => {
+    setEditingId(p.id);
+    setDraft({ sku: p.sku, name: p.name, category: p.category, unit: p.unit });
+    setFormError("");
+    setOpen(true);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -97,17 +114,26 @@ export default function Products() {
     return matchesSearch && matchesCategory;
   });
 
-  const addProduct = async (e) => {
+  const submitProduct = async (e) => {
     e.preventDefault();
+    setFormError("");
+    setSaving(true);
     try {
-      const saved = await productsApi.create(draft);
-      setItems([saved, ...items]);
-    } catch {
-      const id = Math.max(0, ...items.map((i) => i.id)) + 1;
-      setItems([{ id, ...draft, status: "active" }, ...items]);
+      if (editingId) {
+        const saved = await productsApi.update(editingId, draft);
+        setItems(items.map((p) => (p.id === editingId ? { ...p, ...saved } : p)));
+      } else {
+        const saved = await productsApi.create(draft);
+        setItems([saved, ...items]);
+      }
+      setDraft({ sku: "", name: "", category: "", unit: "" });
+      setEditingId(null);
+      setOpen(false);
+    } catch (err) {
+      setFormError(err.response?.data?.detail || "Failed to save product.");
+    } finally {
+      setSaving(false);
     }
-    setDraft({ sku: "", name: "", category: "", unit: "" });
-    setOpen(false);
   };
 
   const removeProduct = async (id) => {
@@ -123,7 +149,7 @@ export default function Products() {
           {loading ? "Loading…" : `${filtered.length} of ${items.length} products`}
         </div>
         {canManage && (
-          <button onClick={() => setOpen(true)} className="btn-primary">
+          <button onClick={openCreate} className="btn-primary">
             <Plus className="h-4 w-4" /> Add product
           </button>
         )}
@@ -191,7 +217,11 @@ export default function Products() {
                   <td><span className="badge-approved capitalize">{p.status}</span></td>
                   {canManage && (
                     <td className="text-right whitespace-nowrap">
-                      <button className="btn-ghost h-8 w-8 p-0" title="Edit">
+                      <button
+                        onClick={() => openEdit(p)}
+                        className="btn-ghost h-8 w-8 p-0"
+                        title="Edit"
+                      >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
@@ -218,15 +248,17 @@ export default function Products() {
       </section>
 
       {open && (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-slate-900/40 p-4">
-          <div className="card w-full max-w-lg p-6">
+        <div className="modal-backdrop">
+          <div className="card anim-scale-in w-full max-w-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-900">Add new product</h3>
+              <h3 className="text-lg font-semibold text-slate-900">
+                {editingId ? "Edit product" : "Add new product"}
+              </h3>
               <button onClick={() => setOpen(false)} className="btn-ghost h-8 w-8 p-0">
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <form onSubmit={addProduct} className="space-y-3">
+            <form onSubmit={submitProduct} className="space-y-3">
               <div>
                 <label className="label">SKU</label>
                 <input className="input" required value={draft.sku}
@@ -253,9 +285,12 @@ export default function Products() {
                     placeholder="bag / piece / metre" />
                 </div>
               </div>
+              {formError && <div className="alert-danger py-2.5 text-xs">{formError}</div>}
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setOpen(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary">Save product</button>
+                <button type="submit" disabled={saving} className="btn-primary">
+                  {saving ? "Saving…" : editingId ? "Update product" : "Save product"}
+                </button>
               </div>
             </form>
           </div>
