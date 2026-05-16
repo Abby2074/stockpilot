@@ -26,6 +26,7 @@ placeholder so frontend development continues without external dependencies.
 from __future__ import annotations
 
 import base64
+import io
 import os
 from collections import Counter
 from pathlib import Path
@@ -34,6 +35,7 @@ from typing import Any, Iterable
 import requests
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from PIL import Image
 from pydantic import BaseModel
 
 
@@ -66,6 +68,9 @@ ROBOFLOW_CLASSES = [
     ).split(",") if c.strip()
 ]
 CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.15"))
+# Hosted inference APIs reject large payloads. We downsize before base64-encoding.
+MAX_IMAGE_DIM   = int(os.getenv("MAX_IMAGE_DIM", "1024"))   # longest edge, px
+JPEG_QUALITY    = int(os.getenv("JPEG_QUALITY", "82"))
 
 
 app = FastAPI(
@@ -138,8 +143,29 @@ async def detect(file: UploadFile = File(...)) -> DetectionResponse:
     )
 
 
+def _preprocess_image(image_bytes: bytes) -> bytes:
+    """Resize/normalise an uploaded image so it stays under hosted-API size limits.
+
+    - Forces JPEG (workflows accept JPEG/PNG; JPEG is smaller).
+    - Caps the longest edge at MAX_IMAGE_DIM (default 1024 px).
+    - Compresses with JPEG_QUALITY (default 82).
+    - Strips EXIF metadata that occasionally trips strict parsers.
+    """
+    img = Image.open(io.BytesIO(image_bytes))
+    img = img.convert("RGB")  # JPEG doesn't support alpha
+    w, h = img.size
+    longest = max(w, h)
+    if longest > MAX_IMAGE_DIM:
+        scale = MAX_IMAGE_DIM / float(longest)
+        img = img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=JPEG_QUALITY, optimize=True)
+    return buf.getvalue()
+
+
 def _call_roboflow_workflow(image_bytes: bytes) -> list[dict[str, Any]]:
-    encoded = base64.b64encode(image_bytes).decode("ascii")
+    processed = _preprocess_image(image_bytes)
+    encoded = base64.b64encode(processed).decode("ascii")
     url = f"{ROBOFLOW_BASE}/{ROBOFLOW_WORKSPACE}/workflows/{ROBOFLOW_WORKFLOW}"
     payload: dict[str, Any] = {
         "api_key": ROBOFLOW_API_KEY,
@@ -156,7 +182,16 @@ def _call_roboflow_workflow(image_bytes: bytes) -> list[dict[str, Any]]:
         headers={"Content-Type": "application/json"},
         timeout=60,
     )
-    response.raise_for_status()
+    if response.status_code >= 400:
+        # Surface the upstream error body — much more useful than a bare status.
+        try:
+            detail = response.json()
+        except Exception:
+            detail = response.text[:500]
+        raise requests.HTTPError(
+            f"{response.status_code} from Roboflow: {detail}",
+            response=response,
+        )
     body = response.json()
     return _extract_predictions(body)
 

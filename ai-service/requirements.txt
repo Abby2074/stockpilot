@@ -4,3 +4,4 @@ gunicorn>=23.0
 python-multipart>=0.0.20
 requests>=2.32
 pydantic>=2.12
+Pillow>=10.0
