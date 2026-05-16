@@ -1,10 +1,11 @@
 # Render blueprint — one-click deploy for StockPilot.
 #
-# This file defines THREE services + a managed PostgreSQL database:
+# This file defines TWO web services + a managed PostgreSQL database:
 #   1. stockpilot-backend  — FastAPI API (port-managed by Render)
 #   2. stockpilot-ai       — Roboflow proxy AI microservice
-#   3. stockpilot-frontend — React static site
-#   4. stockpilot-db       — PostgreSQL 16, free tier
+#   3. stockpilot-db       — PostgreSQL 16, free tier
+#
+# The React frontend is deployed separately on Vercel (see DEPLOYMENT.md).
 #
 # Push your repo to GitHub, then in Render: New ▸ Blueprint ▸ Connect repo.
 # Render reads this file and provisions everything.
@@ -56,27 +57,6 @@ services:
         value: "0.15"
       - key: PYTHON_VERSION
         value: "3.12.7"
-
-  - type: web
-    name: stockpilot-frontend
-    runtime: static
-    plan: free
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: build
-    envVars:
-      - key: REACT_APP_API_BASE
-        value: https://stockpilot-backend.onrender.com    # rename if you change service name
-      - key: REACT_APP_AI_BASE
-        value: https://stockpilot-ai.onrender.com
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: public, max-age=0, must-revalidate
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
 
 databases:
   - name: stockpilot-db
