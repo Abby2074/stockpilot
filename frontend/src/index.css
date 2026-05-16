@@ -192,5 +192,8 @@
   }
 
   /* Modal backdrop */
-  .modal-backdrop { @apply fixed inset-0 z-40 grid place-items-center bg-ink-900/50 p-4 backdrop-blur-sm; }
+  .modal-backdrop {
+    @apply fixed inset-0 z-40 grid place-items-center p-4 backdrop-blur-sm;
+    background-color: rgba(10, 15, 29, 0.55);
+  }
 }
