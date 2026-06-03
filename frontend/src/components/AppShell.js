@@ -1,18 +1,24 @@
+import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
 export default function AppShell({ children, title = "StockPilot", subtitle }) {
   const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
   return (
     <div className="min-h-screen">
-      <Sidebar />
-      <div className="ml-64 flex min-h-screen flex-col">
-        <Topbar title={title} subtitle={subtitle} />
-        <main key={location.pathname} className="anim-fade-up flex-1 p-8">
+      <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
+      <div className="md:ml-64 flex min-h-screen flex-col">
+        <Topbar
+          title={title}
+          subtitle={subtitle}
+          onMobileMenu={() => setMobileOpen(true)}
+        />
+        <main key={location.pathname} className="anim-fade-up flex-1 p-4 md:p-8">
           {children}
         </main>
-        <footer className="footer-surface border-t border-accent-950 px-8 py-4 text-xs text-accent-200">
+        <footer className="footer-surface border-t border-accent-950 px-4 md:px-8 py-4 text-xs text-accent-200">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-accent-200/90">
               © {new Date().getFullYear()} StockPilot · Built for Ghanaian SMEs.

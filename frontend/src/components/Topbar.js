@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, CheckCheck, Loader2 } from "lucide-react";
+import { Bell, CheckCheck, Loader2, Menu } from "lucide-react";
 import { alerts as alertsApi, getUser } from "../lib/api";
 
 const CATEGORY_TONE = {
@@ -23,7 +23,7 @@ function timeAgo(iso) {
   return `${Math.round(s / 86400)}d ago`;
 }
 
-export default function Topbar({ title, subtitle }) {
+export default function Topbar({ title, subtitle, onMobileMenu }) {
   const navigate = useNavigate();
   const user = getUser();
   const [open, setOpen] = useState(false);
@@ -102,12 +102,23 @@ export default function Topbar({ title, subtitle }) {
   };
 
   return (
-    <header className="topbar-surface sticky top-0 z-20 flex h-16 items-center justify-between border-b border-accent-200 px-8">
-      <div className="min-w-0">
-        <h1 className="truncate text-lg font-semibold text-accent-900 tracking-tight">
-          {title}
-        </h1>
-        {subtitle && <p className="truncate text-xs text-accent-700/80">{subtitle}</p>}
+    <header className="topbar-surface sticky top-0 z-20 flex h-16 items-center justify-between border-b border-accent-200 px-4 md:px-8 gap-2">
+      <div className="flex items-center gap-2 min-w-0">
+        {onMobileMenu && (
+          <button
+            onClick={onMobileMenu}
+            aria-label="Open menu"
+            className="md:hidden flex h-9 w-9 items-center justify-center rounded-lg border border-accent-300 bg-white/85 text-accent-700 hover:bg-white"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+        )}
+        <div className="min-w-0">
+          <h1 className="truncate text-base md:text-lg font-semibold text-accent-900 tracking-tight">
+            {title}
+          </h1>
+          {subtitle && <p className="hidden sm:block truncate text-xs text-accent-700/80">{subtitle}</p>}
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
