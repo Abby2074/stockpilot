@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Package,
@@ -23,7 +23,11 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { getUser } from "../lib/api";
+import {
+  getUser,
+  transactions as txApi,
+  products as productsApi,
+} from "../lib/api";
 
 // Stat tile definitions per role.
 const STATS_BY_ROLE = {
@@ -106,12 +110,65 @@ export default function Dashboard() {
   const user = getUser() || {};
   const role = (user.role || "OWNER").toUpperCase();
   const stats  = STATS_BY_ROLE[role]  || STATS_BY_ROLE.OWNER;
-  const counts = COUNTS_BY_ROLE[role] || COUNTS_BY_ROLE.OWNER;
+  const baseCounts = COUNTS_BY_ROLE[role] || COUNTS_BY_ROLE.OWNER;
 
   const isApprover = role === "OWNER" || role === "MANAGER";
   const isSales    = role === "SALES";
 
-  useEffect(() => {}, []);
+  // Live data from the backend
+  const [liveTx, setLiveTx]       = useState([]);
+  const [liveProducts, setLiveProducts] = useState([]);
+  const [loaded, setLoaded]       = useState(false);
+
+  useEffect(() => {
+    Promise.all([
+      txApi.list().catch(() => []),
+      productsApi.list().catch(() => []),
+    ]).then(([tx, prods]) => {
+      setLiveTx(tx || []);
+      setLiveProducts(prods || []);
+      setLoaded(true);
+    });
+  }, []);
+
+  // Override the per-role count tile values with real numbers from the API
+  const pendingTx  = liveTx.filter((t) => t.status === "PENDING");
+  const approvedTx = liveTx.filter((t) => t.status === "APPROVED");
+  const todayISO   = new Date().toISOString().slice(0, 10);
+  const approvedToday = approvedTx.filter((t) => (t.approved_at || t.created_at || "").startsWith(todayISO));
+
+  const counts = {
+    ...baseCounts,
+    products: liveProducts.length || baseCounts.products,
+    tx: liveTx.length || baseCounts.tx,
+    pending: pendingTx.length || (loaded ? 0 : baseCounts.pending),
+    approved: approvedToday.length || (loaded ? 0 : baseCounts.approved),
+    tx_today: liveTx.filter((t) => (t.created_at || "").startsWith(todayISO)).length || (loaded ? 0 : baseCounts.tx_today),
+    my_pending: liveTx.filter((t) => t.status === "PENDING" && t.requested_by === user.id).length || (loaded ? 0 : baseCounts.my_pending),
+  };
+
+  // Approver action panel breakdown
+  const pendingByType = {
+    IN:         pendingTx.filter((t) => t.type === "IN").length,
+    OUT:        pendingTx.filter((t) => t.type === "OUT").length,
+    TRANSFER:   pendingTx.filter((t) => t.type === "TRANSFER").length,
+    ADJUSTMENT: pendingTx.filter((t) => t.type === "ADJUSTMENT").length,
+    COUNT:      pendingTx.filter((t) => t.type === "COUNT").length,
+  };
+
+  // Build the recent-transactions table from real data when available,
+  // joining with products so the table shows real names + sizes.
+  const productById = Object.fromEntries(liveProducts.map((p) => [p.id, p]));
+  const recentRows = (liveTx.length ? liveTx : RECENT.map((r) => ({ ...r, isMock: true })))
+    .slice(0, 10)
+    .map((t) => t.isMock ? t : {
+      id: t.id,
+      product: productById[t.product_id]?.name || `Product #${t.product_id}`,
+      type: t.type,
+      qty: t.approved_quantity ?? t.requested_quantity ?? 0,
+      status: t.status,
+      date: (t.approved_at || t.created_at || "").slice(0, 10),
+    });
 
   return (
     <>
@@ -180,7 +237,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {isApprover && <ApproverActionPanel />}
+        {isApprover && <ApproverActionPanel pending={pendingByType} total={pendingTx.length} />}
         {role === "STOREKEEPER" && <StorekeeperWorkPanel />}
         {isSales && <SalesQuickPanel />}
       </section>
@@ -241,7 +298,7 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {filterRecentForRole(RECENT, role).map((r, i) => (
+              {filterRecentForRole(recentRows, role).map((r, i) => (
                 <tr key={i}>
                   <td className="font-medium text-slate-900">{r.product}</td>
                   <td><span className={`badge ${TYPE_BADGE[r.type]}`}>{r.type}</span></td>
@@ -283,18 +340,22 @@ function FeatureTile({ tone, Icon, title, version, status, body, tags = [], dela
   );
 }
 
-function ApproverActionPanel() {
+function ApproverActionPanel({ pending = {}, total = 0 }) {
   return (
     <div className="card p-6">
       <div className="flex items-center gap-2 mb-3">
         <AlertTriangle className="h-4 w-4 text-amber-600" />
         <h2 className="text-base font-semibold text-slate-900">Awaiting your action</h2>
+        {total > 0 && (
+          <span className="ml-auto badge-pending">{total} pending</span>
+        )}
       </div>
       <ul className="space-y-3 text-sm">
-        <li className="flex items-center justify-between"><span className="text-slate-600">Stock-in approvals</span><span className="font-semibold text-slate-900">4</span></li>
-        <li className="flex items-center justify-between"><span className="text-slate-600">Stock adjustments</span><span className="font-semibold text-slate-900">2</span></li>
-        <li className="flex items-center justify-between"><span className="text-slate-600">Transfer requests</span><span className="font-semibold text-slate-900">1</span></li>
-        <li className="flex items-center justify-between"><span className="text-slate-600">AI count reviews</span><span className="font-semibold text-slate-900">2</span></li>
+        <li className="flex items-center justify-between"><span className="text-slate-600">Stock-in approvals</span><span className="font-semibold text-slate-900">{pending.IN ?? 0}</span></li>
+        <li className="flex items-center justify-between"><span className="text-slate-600">Stock-out approvals</span><span className="font-semibold text-slate-900">{pending.OUT ?? 0}</span></li>
+        <li className="flex items-center justify-between"><span className="text-slate-600">Stock adjustments</span><span className="font-semibold text-slate-900">{pending.ADJUSTMENT ?? 0}</span></li>
+        <li className="flex items-center justify-between"><span className="text-slate-600">Transfer requests</span><span className="font-semibold text-slate-900">{pending.TRANSFER ?? 0}</span></li>
+        <li className="flex items-center justify-between"><span className="text-slate-600">AI count reviews</span><span className="font-semibold text-slate-900">{pending.COUNT ?? 0}</span></li>
       </ul>
       <Link to="/transactions" className="btn-primary w-full mt-4">Review pending</Link>
     </div>

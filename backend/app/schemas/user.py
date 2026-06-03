@@ -18,12 +18,17 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class StatusEnum(str, Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+
 class UserResponse(BaseModel):
     id: int
     name: str
     email: str
     role: RoleEnum
     branch_id: int | None
+    status: StatusEnum | None = StatusEnum.ACTIVE
 
     class Config:
         from_attributes = True

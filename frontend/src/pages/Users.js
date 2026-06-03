@@ -52,18 +52,20 @@ export default function Users() {
     )) return;
     try {
       await usersApi.deactivate(u.id);
-      refresh();
     } catch (err) {
       alert(err.response?.data?.detail || "Failed to deactivate user.");
+    } finally {
+      refresh();   // always re-pull the live list so the badge + button reflect server state
     }
   };
 
   const handleReactivate = async (u) => {
     try {
       await usersApi.reactivate(u.id);
-      refresh();
     } catch (err) {
       alert(err.response?.data?.detail || "Failed to reactivate user.");
+    } finally {
+      refresh();
     }
   };
 
