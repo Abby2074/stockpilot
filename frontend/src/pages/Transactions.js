@@ -69,36 +69,81 @@ export default function Transactions() {
     notes: "",
   });
 
+  // Normalise API transactions to the shape the table expects.
+  // Backend returns: {id, type, product_id, requested_quantity, from_branch_id, to_branch_id,
+  //                   requested_by, approved_by, status, ...}
+  // Table renders:  {id, type, product, qty, from, to, user, status, date}
+  const normalise = (t) => {
+    if (t.product && t.qty !== undefined) return t;  // SEED row, already shaped
+    const product = productList.find((p) => p.id === t.product_id);
+    return {
+      id: t.id,
+      type: t.type,
+      product: product?.name || `Product #${t.product_id}`,
+      qty: t.approved_quantity ?? t.requested_quantity ?? 0,
+      from: t.from_branch_id ? `Branch ${t.from_branch_id}` : "—",
+      to: t.to_branch_id ? `Branch ${t.to_branch_id}` : "—",
+      user: `User #${t.requested_by}`,
+      status: t.status,
+      date: (t.created_at || "").slice(0, 10) || new Date().toISOString().slice(0, 10),
+      requested_by: t.requested_by,
+    };
+  };
+
   const refresh = () => {
     txApi
       .list()
-      .then((data) => setItems(data && data.length ? data : SEED))
+      .then((data) => {
+        if (data && data.length) setItems(data.map(normalise));
+        else setItems(SEED);
+      })
       .catch(() => setItems(SEED));
   };
 
   useEffect(() => {
-    refresh();
+    // Load products first, then transactions (so normalise can resolve names)
     productsApi.list()
       .then((data) => setProductList(data || []))
-      .catch(() => setProductList([]));
+      .catch(() => setProductList([]))
+      .finally(refresh);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // When productList loads after transactions, re-normalise so product names show
+  useEffect(() => {
+    if (productList.length && items.length) {
+      setItems((prev) => prev.map(normalise));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productList]);
 
   const visibleToUser = isStorekeeper
     ? items.filter((t) =>
-        (t.user || "").toLowerCase().includes((user?.name || "").split(" ")[0].toLowerCase()) ||
-        items.length < 5
+        // Real backend rows have requested_by (numeric id); SEED rows have user (string name)
+        t.requested_by ? t.requested_by === user?.id :
+          (t.user || "").toLowerCase().includes((user?.name || "").split(" ")[0].toLowerCase()) ||
+          items.length < 5
       )
     : items;
 
   const filtered = filter === "ALL" ? visibleToUser : visibleToUser.filter((t) => t.status === filter);
   const pendingCount = visibleToUser.filter((t) => t.status === "PENDING").length;
 
+  // Ask the topbar to refresh its alert count right away (instead of waiting 20s)
+  const pingAlertBell = () => {
+    window.dispatchEvent(new CustomEvent("stockpilot:alerts:refresh"));
+  };
+
   const setStatus = async (id, status) => {
     try {
       if (status === "APPROVED") await txApi.approve(id);
       else if (status === "REJECTED") await txApi.reject(id, "Rejected from dashboard");
-    } catch {}
-    setItems(items.map((t) => (t.id === id ? { ...t, status } : t)));
+      refresh();           // re-pull authoritative state from API
+      pingAlertBell();     // approval also generates an alert for the initiator
+    } catch (err) {
+      alert(err.response?.data?.detail || "Action failed. The page will refresh.");
+      refresh();           // refresh even on failure so UI doesn't lie
+    }
   };
 
   const submitTransaction = async (e) => {
@@ -123,7 +168,7 @@ export default function Transactions() {
         if (draft.from_branch_id) payload.from_branch_id = Number(draft.from_branch_id);
       }
       await txApi.create(payload);
-      // close + refresh
+      // close + refresh + nudge alert bell so the manager sees the alert immediately
       setOpen(false);
       setDraft({
         type: "IN",
@@ -134,6 +179,7 @@ export default function Transactions() {
         notes: "",
       });
       refresh();
+      pingAlertBell();
     } catch (err) {
       setFormError(err.response?.data?.detail || "Failed to create transaction.");
     } finally {

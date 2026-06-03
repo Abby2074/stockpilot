@@ -44,7 +44,15 @@ export default function Topbar({ title, subtitle }) {
   useEffect(() => {
     refresh();
     const t = setInterval(refresh, 20000);
-    return () => clearInterval(t);
+    // Listen for explicit refresh requests from other pages (e.g. after
+    // creating a transaction, the Transactions page dispatches this event
+    // so the bell updates immediately instead of waiting 20s).
+    const onAsk = () => refresh();
+    window.addEventListener("stockpilot:alerts:refresh", onAsk);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("stockpilot:alerts:refresh", onAsk);
+    };
   }, []);
 
   useEffect(() => {
