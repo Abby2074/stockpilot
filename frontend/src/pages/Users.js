@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { UserPlus, Mail, Lock, ShieldCheck, ShieldAlert, X, Loader2 } from "lucide-react";
+import {
+  UserPlus,
+  Mail,
+  Lock,
+  ShieldCheck,
+  ShieldAlert,
+  X,
+  Loader2,
+  UserX,
+  UserCheck,
+} from "lucide-react";
 import { users as usersApi, getUser } from "../lib/api";
 
 const ROLES = ["OWNER", "MANAGER", "STOREKEEPER", "SALES"];
@@ -35,6 +45,27 @@ export default function Users() {
   };
 
   useEffect(refresh, []);
+
+  const handleDeactivate = async (u) => {
+    if (!window.confirm(
+      `Deactivate ${u.name} (${u.email})? Their account will be set to INACTIVE and they will no longer be able to log in. This is reversible.`
+    )) return;
+    try {
+      await usersApi.deactivate(u.id);
+      refresh();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Failed to deactivate user.");
+    }
+  };
+
+  const handleReactivate = async (u) => {
+    try {
+      await usersApi.reactivate(u.id);
+      refresh();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Failed to reactivate user.");
+    }
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -109,22 +140,54 @@ export default function Users() {
                 <th>Role</th>
                 <th>Branch</th>
                 <th>Status</th>
+                <th className="text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {list.map((u) => (
-                <tr key={u.id}>
-                  <td className="text-slate-400 font-mono text-xs">#{u.id}</td>
-                  <td className="font-medium text-slate-900">{u.name}</td>
-                  <td className="text-slate-600">{u.email}</td>
-                  <td><span className={`badge ${ROLE_BADGE[u.role] || "badge-info"}`}>{u.role}</span></td>
-                  <td className="text-slate-500">{u.branch_id ?? "—"}</td>
-                  <td><span className="badge-approved">Active</span></td>
-                </tr>
-              ))}
+              {list.map((u) => {
+                const isActive = (u.status || "active").toLowerCase() === "active";
+                const isSelf = u.id === me?.id;
+                return (
+                  <tr key={u.id}>
+                    <td className="text-slate-400 font-mono text-xs">#{u.id}</td>
+                    <td className="font-medium text-slate-900">{u.name}</td>
+                    <td className="text-slate-600">{u.email}</td>
+                    <td>
+                      <span className={`badge ${ROLE_BADGE[u.role] || "badge-info"}`}>{u.role}</span>
+                    </td>
+                    <td className="text-slate-500">{u.branch_id ?? "—"}</td>
+                    <td>
+                      <span className={isActive ? "badge-approved" : "badge-rejected"}>
+                        {isActive ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="text-right whitespace-nowrap">
+                      {isSelf ? (
+                        <span className="text-xs text-slate-400 italic">you</span>
+                      ) : isActive ? (
+                        <button
+                          onClick={() => handleDeactivate(u)}
+                          className="btn-danger btn-sm"
+                          title="Deactivate user"
+                        >
+                          <UserX className="h-3.5 w-3.5" /> Deactivate
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleReactivate(u)}
+                          className="btn-success btn-sm"
+                          title="Reactivate user"
+                        >
+                          <UserCheck className="h-3.5 w-3.5" /> Reactivate
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
               {!loading && list.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500">
+                  <td colSpan={7} className="py-12 text-center text-slate-500">
                     No users yet. Click <span className="font-medium">Add user</span> to create one.
                   </td>
                 </tr>

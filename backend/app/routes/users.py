@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.models import User, AuditLog
+from app.models.models import User, AuditLog, StatusEnum
 from app.schemas.user import UserCreate, UserResponse
 from app.deps import require_roles
 from app.routes.auth import hash_password
@@ -73,3 +73,76 @@ def create_user(
     db.commit()
     db.refresh(new_user)
     return new_user
+
+
+@router.delete("/{user_id}", response_model=UserResponse)
+def deactivate_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    owner: User = Depends(require_roles("OWNER")),
+):
+    """Soft-delete (deactivate) a user. Sets status=INACTIVE.
+
+    We never hard-delete because AuditLog rows reference user_id and we want
+    the historical record preserved. Reactivation is via POST /users/{id}/activate.
+    """
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    if target.id == owner.id:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "You cannot deactivate your own account.",
+        )
+    if target.status == StatusEnum.INACTIVE:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            f"User {target.email} is already inactive.",
+        )
+    before = _user_to_dict(target)
+    target.status = StatusEnum.INACTIVE
+    db.add(
+        AuditLog(
+            user_id=owner.id,
+            entity_type="User",
+            entity_id=target.id,
+            action="DEACTIVATE",
+            before_data=before,
+            after_data=_user_to_dict(target),
+        )
+    )
+    db.commit()
+    db.refresh(target)
+    return target
+
+
+@router.post("/{user_id}/activate", response_model=UserResponse)
+def reactivate_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    owner: User = Depends(require_roles("OWNER")),
+):
+    """Reactivate a previously deactivated user."""
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    if target.status == StatusEnum.ACTIVE:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            f"User {target.email} is already active.",
+        )
+    before = _user_to_dict(target)
+    target.status = StatusEnum.ACTIVE
+    db.add(
+        AuditLog(
+            user_id=owner.id,
+            entity_type="User",
+            entity_id=target.id,
+            action="REACTIVATE",
+            before_data=before,
+            after_data=_user_to_dict(target),
+        )
+    )
+    db.commit()
+    db.refresh(target)
+    return target
