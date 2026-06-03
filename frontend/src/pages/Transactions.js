@@ -4,6 +4,7 @@ import {
   getUser,
   transactions as txApi,
   products as productsApi,
+  branches as branchesApi,
 } from "../lib/api";
 
 const SEED = [
@@ -55,6 +56,7 @@ export default function Transactions() {
   const [items, setItems] = useState([]);
   const [filter, setFilter] = useState("ALL");
   const [productList, setProductList] = useState([]);
+  const [branchList, setBranchList] = useState([]);
 
   // Modal state
   const [open, setOpen] = useState(false);
@@ -73,6 +75,7 @@ export default function Transactions() {
   // Backend returns: {id, type, product_id, requested_quantity, from_branch_id, to_branch_id,
   //                   requested_by, approved_by, status, ...}
   // Table renders:  {id, type, product, qty, from, to, user, status, date}
+  const branchName = (id) => branchList.find((b) => b.id === id)?.name || `Branch ${id}`;
   const normalise = (t) => {
     if (t.product && t.qty !== undefined) return t;  // SEED row, already shaped
     const product = productList.find((p) => p.id === t.product_id);
@@ -81,8 +84,8 @@ export default function Transactions() {
       type: t.type,
       product: product?.name || `Product #${t.product_id}`,
       qty: t.approved_quantity ?? t.requested_quantity ?? 0,
-      from: t.from_branch_id ? `Branch ${t.from_branch_id}` : "—",
-      to: t.to_branch_id ? `Branch ${t.to_branch_id}` : "—",
+      from: t.from_branch_id ? branchName(t.from_branch_id) : "—",
+      to:   t.to_branch_id   ? branchName(t.to_branch_id)   : "—",
       user: `User #${t.requested_by}`,
       status: t.status,
       date: (t.created_at || "").slice(0, 10) || new Date().toISOString().slice(0, 10),
@@ -101,11 +104,14 @@ export default function Transactions() {
   };
 
   useEffect(() => {
-    // Load products first, then transactions (so normalise can resolve names)
-    productsApi.list()
-      .then((data) => setProductList(data || []))
-      .catch(() => setProductList([]))
-      .finally(refresh);
+    // Load products + branches first, then transactions (so normalise can resolve names)
+    Promise.all([
+      productsApi.list().catch(() => []),
+      branchesApi.list().catch(() => []),
+    ]).then(([prods, brs]) => {
+      setProductList(prods || []);
+      setBranchList(brs || []);
+    }).finally(refresh);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -373,27 +379,35 @@ export default function Transactions() {
                     <label className="label">
                       {draft.type === "ADJUSTMENT" ? "Branch" : "To branch"}
                     </label>
-                    <input
+                    <select
                       className="input"
-                      type="number"
-                      min="1"
                       value={draft.to_branch_id}
                       onChange={(e) => setDraft({ ...draft, to_branch_id: e.target.value })}
-                      placeholder="1"
-                    />
+                    >
+                      <option value="">— Select branch —</option>
+                      {branchList.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name}{b.city ? ` (${b.city})` : ""}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 )}
                 {(draft.type === "OUT" || draft.type === "TRANSFER") && (
                   <div>
                     <label className="label">From branch</label>
-                    <input
+                    <select
                       className="input"
-                      type="number"
-                      min="1"
                       value={draft.from_branch_id}
                       onChange={(e) => setDraft({ ...draft, from_branch_id: e.target.value })}
-                      placeholder="1"
-                    />
+                    >
+                      <option value="">— Select branch —</option>
+                      {branchList.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name}{b.city ? ` (${b.city})` : ""}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 )}
               </div>

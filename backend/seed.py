@@ -129,10 +129,16 @@ PRODUCT_CATALOGUE = [
 ]
 
 
+EXTRA_BRANCHES = [
+    ("Kumasi Branch", "Kejetia Industrial Area", "Kumasi"),
+    ("Tema Branch",   "Heavy Industrial Estate", "Tema"),
+]
+
+
 def main():
     db = SessionLocal()
     try:
-        # Branch
+        # Branches — main + extras
         branch = db.query(Branch).filter(Branch.name == DEFAULT_BRANCH_NAME).first()
         if branch is None:
             branch = Branch(name=DEFAULT_BRANCH_NAME, address="12 High Street", city="Accra")
@@ -141,6 +147,15 @@ def main():
             print(f"  + Branch created: {branch.name} (id={branch.id})")
         else:
             print(f"  = Branch exists: {branch.name} (id={branch.id})")
+        for name, addr, city in EXTRA_BRANCHES:
+            existing = db.query(Branch).filter(Branch.name == name).first()
+            if existing is None:
+                b = Branch(name=name, address=addr, city=city)
+                db.add(b)
+                db.flush()
+                print(f"  + Branch created: {b.name} (id={b.id})")
+            else:
+                print(f"  = Branch exists: {existing.name} (id={existing.id})")
 
         # Owner
         owner = db.query(User).filter(User.email == DEFAULT_OWNER_EMAIL).first()

@@ -43,6 +43,11 @@ export const products = {
   remove: (id) => api.delete(`/products/${id}`).then((r) => r.data),
 };
 
+export const branches = {
+  list: () => api.get("/branches").then((r) => r.data),
+  create: (data) => api.post("/branches", data).then((r) => r.data),
+};
+
 export const users = {
   list: () => api.get("/users").then((r) => r.data),
   create: (data) => api.post("/users", data).then((r) => r.data),
