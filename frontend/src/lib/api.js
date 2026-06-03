@@ -67,6 +67,13 @@ export const audit = {
   list: (params = {}) => api.get("/audit", { params }).then((r) => r.data),
 };
 
+export const aiCount = {
+  list: () => api.get("/ai-count-sessions").then((r) => r.data),
+  create: (data) => api.post("/ai-count-sessions", data).then((r) => r.data),
+  approve: (id) => api.post(`/ai-count-sessions/${id}/approve`).then((r) => r.data),
+  reject: (id) => api.post(`/ai-count-sessions/${id}/reject`).then((r) => r.data),
+};
+
 export const alerts = {
   list: (unreadOnly = false) =>
     api.get("/alerts", { params: { unread_only: unreadOnly } }).then((r) => r.data),

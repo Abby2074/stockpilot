@@ -11,7 +11,13 @@ import {
   ShieldCheck,
   AlertTriangle,
 } from "lucide-react";
-import { aiDetect, aiStatus, getUser } from "../lib/api";
+import {
+  aiDetect,
+  aiStatus,
+  getUser,
+  aiCount as aiCountApi,
+  products as productsApi,
+} from "../lib/api";
 
 export default function AICount() {
   const user = getUser();
@@ -22,7 +28,9 @@ export default function AICount() {
   const [results, setResults] = useState(null);
   const [decision, setDecision] = useState(null);
   const [error, setError] = useState(null);
-  const [model, setModel] = useState({ configured: false, mock: true });
+  const [model, setModel] = useState({ configured: false, mock: true, name: "" });
+  const [productList, setProductList] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     aiStatus()
@@ -30,10 +38,30 @@ export default function AICount() {
         setModel({
           configured: !!s.model_configured && !!s.api_key_configured,
           mock: !s.model_configured,
+          name: s.backend === "gemini" || s.backend === "hybrid"
+            ? `google/${s.gemini_model || "gemini-flash-latest"}`
+            : (s.workflow || ""),
         })
       )
-      .catch(() => setModel({ configured: false, mock: true }));
+      .catch(() => setModel({ configured: false, mock: true, name: "" }));
+    productsApi.list().then(setProductList).catch(() => setProductList([]));
   }, []);
+
+  // Map an AI-returned class label to a real product_id by fuzzy substring match.
+  // Returns null if no plausible match.
+  const matchProduct = (label) => {
+    if (!label || !productList.length) return null;
+    const needle = label.toLowerCase().trim();
+    // Exact name match first
+    let p = productList.find((x) => x.name.toLowerCase() === needle);
+    if (p) return p;
+    // Then contains (e.g. "iron rod" matches "Iron rod 12mm")
+    p = productList.find((x) => x.name.toLowerCase().includes(needle));
+    if (p) return p;
+    // Then reverse contains (e.g. "rebar bundle" matches catalog "rebar")
+    p = productList.find((x) => needle.includes(x.name.toLowerCase().split(" ")[0]));
+    return p || null;
+  };
 
   const onFiles = (e) => {
     const files = Array.from(e.target.files || []);
@@ -72,6 +100,57 @@ export default function AICount() {
     setResults(null);
     setDecision(null);
     setError(null);
+  };
+
+  // Create a session in the backend, then immediately approve or reject it.
+  // The backend writes audit log entries for every step and emits alerts.
+  const submitDecision = async (outcome) => {
+    if (!results || !results.length) return;
+    setSubmitting(true);
+    try {
+      // 1. Build the detections payload, resolving each AI class label to a
+      //    real product_id wherever possible.
+      const detections = results.map((r) => {
+        const p = matchProduct(r.product);
+        return {
+          product: r.product,
+          product_id: p?.id || null,
+          count: r.count,
+          confidence: r.confidence,
+        };
+      });
+      const matchedCount = detections.filter((d) => d.product_id).length;
+
+      // 2. Create the session
+      const session = await aiCountApi.create({
+        detections,
+        model: model.name || null,
+      });
+
+      // 3. Approve or reject it (backend enforces separation of duties)
+      if (outcome === "APPROVED") {
+        await aiCountApi.approve(session.id);
+        setDecision({
+          outcome: "APPROVED",
+          session_id: session.id,
+          applied_count: matchedCount,
+        });
+      } else {
+        await aiCountApi.reject(session.id);
+        setDecision({ outcome: "REJECTED", session_id: session.id });
+      }
+
+      // 4. Ping the alert bell so the initiator's notification appears live
+      window.dispatchEvent(new CustomEvent("stockpilot:alerts:refresh"));
+    } catch (err) {
+      const detail = err?.response?.data?.detail;
+      setDecision({
+        outcome: "ERROR",
+        message: detail || "Failed to submit decision. Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -200,29 +279,50 @@ export default function AICount() {
 
               {canApprove && !decision && (
                 <div className="mt-6 flex justify-end gap-2 pt-4 border-t border-slate-100">
-                  <button onClick={() => setDecision("REJECTED")} className="btn-danger">
-                    <XCircle className="h-4 w-4" /> Reject session
+                  <button onClick={() => submitDecision("REJECTED")}
+                    disabled={submitting} className="btn-danger">
+                    {submitting ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
+                    ) : (
+                      <><XCircle className="h-4 w-4" /> Reject session</>
+                    )}
                   </button>
-                  <button onClick={() => setDecision("APPROVED")} className="btn-success">
-                    <CheckCircle2 className="h-4 w-4" /> Approve & apply to stock
+                  <button onClick={() => submitDecision("APPROVED")}
+                    disabled={submitting} className="btn-success">
+                    {submitting ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
+                    ) : (
+                      <><CheckCircle2 className="h-4 w-4" /> Approve & apply to stock</>
+                    )}
                   </button>
                 </div>
               )}
 
-              {decision === "APPROVED" && (
+              {decision?.outcome === "APPROVED" && (
                 <div className="alert-success mt-4">
                   <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
-                  <div>Session approved. Stock levels updated and audit log entry written.</div>
+                  <div>
+                    Session #{decision.session_id} approved.{" "}
+                    {decision.applied_count > 0
+                      ? `${decision.applied_count} stock-level update${decision.applied_count === 1 ? "" : "s"} written and audited.`
+                      : "No matched products — nothing was applied to stock, but the session is on the audit log."}
+                  </div>
                 </div>
               )}
-              {decision === "REJECTED" && (
+              {decision?.outcome === "REJECTED" && (
                 <div className="alert-danger mt-4">
                   <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                  <div>Session rejected. No stock levels were changed.</div>
+                  <div>Session #{decision.session_id} rejected. No stock levels were changed.</div>
+                </div>
+              )}
+              {decision?.outcome === "ERROR" && (
+                <div className="alert-danger mt-4">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <div>{decision.message}</div>
                 </div>
               )}
 
-              {!canApprove && (
+              {!canApprove && !decision && (
                 <div className="alert-neutral mt-4">
                   <ImageIcon className="h-4 w-4 mt-0.5 shrink-0" />
                   <div>Detection saved. Awaiting Manager / Owner approval.</div>
