@@ -90,6 +90,42 @@ PRODUCT_CATALOGUE = [
     ("TMBR-2X3",     "Wawa timber 2″×3″ ×12ft",         "Timber",       "piece"),
     ("PLY-18",       "Plywood 18mm 4×8ft",              "Timber",       "sheet"),
     ("PLY-12",       "Plywood 12mm 4×8ft",              "Timber",       "sheet"),
+    # Steel Sections — square hollow section (SHS)
+    ("SHS-20",       "Square hollow section 20×20mm",   "Steel Sections", "length"),
+    ("SHS-25",       "Square hollow section 25×25mm",   "Steel Sections", "length"),
+    ("SHS-30",       "Square hollow section 30×30mm",   "Steel Sections", "length"),
+    ("SHS-40",       "Square hollow section 40×40mm",   "Steel Sections", "length"),
+    ("SHS-50",       "Square hollow section 50×50mm",   "Steel Sections", "length"),
+    ("SHS-75",       "Square hollow section 75×75mm",   "Steel Sections", "length"),
+    ("SHS-100",      "Square hollow section 100×100mm", "Steel Sections", "length"),
+    # Steel Sections — rectangular hollow section (RHS)
+    ("RHS-40X20",    "Rectangular hollow section 40×20mm",  "Steel Sections", "length"),
+    ("RHS-50X25",    "Rectangular hollow section 50×25mm",  "Steel Sections", "length"),
+    ("RHS-75X40",    "Rectangular hollow section 75×40mm",  "Steel Sections", "length"),
+    ("RHS-100X50",   "Rectangular hollow section 100×50mm", "Steel Sections", "length"),
+    # Steel Sections — angle bars
+    ("ANGLE-25",     "Steel angle bar 25×25×3mm",       "Steel Sections", "length"),
+    ("ANGLE-50",     "Steel angle bar 50×50×5mm",       "Steel Sections", "length"),
+    # Steel Sections — flat bars
+    ("FLAT-25",      "Steel flat bar 25×3mm",           "Steel Sections", "length"),
+    ("FLAT-50",      "Steel flat bar 50×5mm",           "Steel Sections", "length"),
+    # Steel Sections — U-channels (C-section)
+    ("UCH-50",       "U-channel 50×25×3mm",             "Steel Sections", "length"),
+    ("UCH-75",       "U-channel 75×40×4mm",             "Steel Sections", "length"),
+    ("UCH-100",      "U-channel 100×50×5mm",            "Steel Sections", "length"),
+    # Steel Sections — I-beams
+    ("IBEAM-100",    "I-beam 100mm web",                "Steel Sections", "length"),
+    ("IBEAM-150",    "I-beam 150mm web",                "Steel Sections", "length"),
+    ("IBEAM-200",    "I-beam 200mm web",                "Steel Sections", "length"),
+    # Steel Plates — mild steel
+    ("PLATE-3",      "Mild steel plate 3mm 4×8ft",      "Steel Plates",   "sheet"),
+    ("PLATE-5",      "Mild steel plate 5mm 4×8ft",      "Steel Plates",   "sheet"),
+    ("PLATE-8",      "Mild steel plate 8mm 4×8ft",      "Steel Plates",   "sheet"),
+    ("PLATE-10",     "Mild steel plate 10mm 4×8ft",     "Steel Plates",   "sheet"),
+    ("PLATE-12",     "Mild steel plate 12mm 4×8ft",     "Steel Plates",   "sheet"),
+    # Steel Plates — chequered (tear-drop)
+    ("CHQR-3",       "Chequered plate 3mm 4×8ft",       "Steel Plates",   "sheet"),
+    ("CHQR-5",       "Chequered plate 5mm 4×8ft",       "Steel Plates",   "sheet"),
 ]
 
 
