@@ -186,4 +186,26 @@ curl -sS https://stockpilot-ai-t8c4.onrender.com/ | python3 -m json.tool
 
 ---
 
+---
+
+## 🟡 IMMEDIATE FIRST TASK for the new session (2026-06-03)
+
+The user uploaded **`/Users/abigail/Downloads/223013501.docx`** — the **official project assessment / marking rubric** from her school.
+
+**She wants:**
+1. **Read that docx in full** — every criterion, weighting, and expected deliverable.
+2. **Compare it, point-by-point, against what StockPilot actually delivers** (this repo + the thesis at `~/Documents/2026MIS223013501.docx` + the poster at `~/Downloads/StockPilot_Poster_OnePage.html` + the pitch at `~/Downloads/StockPilot_Pitch_*`).
+3. **Give her an honest verdict.** For every criterion in the rubric:
+   - Where does StockPilot **hit** it? (cite the file / page / section)
+   - Where does it **miss or fall short**? (be direct — she prefers honest trade-offs)
+   - What **single change** would raise the score most for the effort?
+4. Then ask her which of those to act on next.
+
+**How to read the docx (skill route):**
+- Use the `anthropic-skills:docx` skill or `pypdf`/unpack for text extraction.
+- The `ai-service/venv/bin/python` interpreter has `pypdf` installed.
+- Or unpack directly: `unzip "$doc" -d /tmp/rubric_unpacked` then read `word/document.xml`.
+
+**Do NOT dive into implementation.** She has explicitly asked you to just read, compare, and *give her the verdict first* — then she decides next steps.
+
 ## End of handoff.
